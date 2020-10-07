@@ -38,10 +38,6 @@ public class Application extends android.app.Application {
         handleSSLHandshake();
         Log.e("DefaultOn","On");
         //http://162.244.77.2:9002/
-
-
-
-
     }
     @SuppressLint("TrulyRandom")
     public static void handleSSLHandshake() {

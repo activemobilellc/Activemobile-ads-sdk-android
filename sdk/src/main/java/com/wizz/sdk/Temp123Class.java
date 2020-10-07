@@ -140,7 +140,22 @@ public class Temp123Class extends AppCompatActivity {
                                     for(int i=0; i<duration; i++){
                                         if(player!=null){
                                             if((player.getCurrentPosition()>=(i*1000)) && (player.getCurrentPosition()<=((i+1)*1000))){
-                                                textView.setText("Ending In "+(duration-i));
+                                                if(is_skipable.equalsIgnoreCase("true")){
+                                                    if(i>=4){
+                                                        runOnUiThread(new Runnable() {
+                                                            @Override
+                                                            public void run() {
+                                                                textView.setEnabled(true);
+                                                            }
+                                                        });
+                                                        textView.setText("Skip Ad");
+                                                    }else{
+                                                        textView.setText("Skip Ad In "+(5-i));
+                                                    }
+                                                }else{
+                                                    textView.setText("Ending In "+(duration-i));
+                                                }
+
                                                 elapsed= ((double) i/duration)*100;
                                                 if(elapsed>25 && elapsed<=50){
                                                     //firstQuartile
@@ -169,6 +184,7 @@ public class Temp123Class extends AppCompatActivity {
                                             break;
                                         }
                                     }
+
                                 }else{
                                     break;
                                 }
@@ -205,6 +221,7 @@ public class Temp123Class extends AppCompatActivity {
 
                             JSONObject resp= obj.getJSONObject("data");
                             is_skipable= resp.getString("skipable_event"); // for image banner
+                            //is_skipable="true";
                             start_url= resp.getString("start_event");
                             first_quartile_url= resp.getString("first_quartile_event");
                             midpoint_url= resp.getString("mid_point_event");

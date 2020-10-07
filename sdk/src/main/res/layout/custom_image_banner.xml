@@ -49,7 +49,8 @@
         android:text="Ad has been closed."
         android:textAlignment="center"
         android:textSize="18dp"
-        android:visibility="gone"/>
+        android:visibility="gone"
+        android:gravity="center_horizontal" />
 
 
 </LinearLayout>
