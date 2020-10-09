@@ -11,6 +11,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -38,10 +39,10 @@ public class Temp123Class extends AppCompatActivity {
     private SimpleExoPlayer player;
     private ImaAdsLoader adsLoader;
     ProgressBar progressBar;
-    String popUrl, video_url, video_duration, is_skipable, response_status;
-    String start_url, first_quartile_url, midpoint_url, third_quartile_url, end_url, impression_url, on_click_url;
+    String tracking_events, popUrl, video_url1, video_url2, video_duration, is_skipable, response_status;
+    String start_url, first_quartile_url, midpoint_url, third_quartile_url, end_url, impression_url, on_click_url1, on_click_url2;
     int duration;
-    LinearLayout layout;
+    ConstraintLayout layout;
 
     TextView textView;
 
@@ -52,7 +53,7 @@ public class Temp123Class extends AppCompatActivity {
 
         playerView = findViewById(R.id.player_view);
         textView= (TextView) findViewById(R.id.text_view);
-        layout= (LinearLayout) findViewById(R.id.layout);
+        layout= (ConstraintLayout) findViewById(R.id.layout);
         textView.setEnabled(false);
         textView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -61,12 +62,12 @@ public class Temp123Class extends AppCompatActivity {
             }
         });
 
-        recieveJSON();
+        recieveJSONLevel1();
 
         // Create an AdsLoader with the ad tag url.
         adsLoader = new ImaAdsLoader(this, Uri.parse(""));
-        progressBar= (ProgressBar) findViewById(R.id.progress_bar);
-        progressBar.setVisibility(View.INVISIBLE);
+//        progressBar= (ProgressBar) findViewById(R.id.progress_bar);
+//        progressBar.setVisibility(View.INVISIBLE);
     }
 
 
@@ -92,7 +93,7 @@ public class Temp123Class extends AppCompatActivity {
 
         // Create the MediaSource for the content you wish to play. http://dl59.y2mate.com/?file=M3R4SUNiN3JsOHJ6WWQ2a3NQS1Y5ZGlxVlZIOCtyZ1hrTm8xMHowbVNwaFB0SWdxMmVlaE1OMEVDcUlDd3JXREJZOWsyQVRmYS9LZkdUQ2Y1TXgyY2oyTTU0Sjd2emJEOXJFd1dOMTVDMU9xdmYrc2d5Vmppd0t3TFA3QUJld1RQMUY1NWhKRnluU2V6ZVhSOXhiM3ZqYmc3RjZMWXlzZXZ6NDBMdmJDOUpwRzFtalllOGpnMXAwS2tnZUxzNnBrNFBlSGxoWGYvS1JzN0l4RkVFbGtKOVpZd1lyOHpmWFlyRW9jM2NoSmd4VHorckgvVjhsekQ3UERhaUVoYnc9PQ%3D%3D
         MediaSource mediaSource =
-                mediaSourceFactory.createMediaSource(Uri.parse(video_url));
+                mediaSourceFactory.createMediaSource(Uri.parse(video_url1));
 
         // Create the AdsMediaSource using the AdsLoader and the MediaSource.
         AdsMediaSource adsMediaSource =
@@ -112,7 +113,7 @@ public class Temp123Class extends AppCompatActivity {
                     layout.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            hitURL(on_click_url);
+                            hitURL(on_click_url1);
                             Intent i = new Intent(Intent.ACTION_VIEW);
                             i.setData(Uri.parse(popUrl));
                             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -138,22 +139,34 @@ public class Temp123Class extends AppCompatActivity {
                                 if(player!=null){
 //                                    progressBar.setProgress((int)((player.getCurrentPosition()/temp)*10));
                                     for(int i=0; i<duration; i++){
+                                        final int temp=i;
                                         if(player!=null){
                                             if((player.getCurrentPosition()>=(i*1000)) && (player.getCurrentPosition()<=((i+1)*1000))){
                                                 if(is_skipable.equalsIgnoreCase("true")){
-                                                    if(i>=4){
+                                                    if(i>=5){
                                                         runOnUiThread(new Runnable() {
                                                             @Override
                                                             public void run() {
                                                                 textView.setEnabled(true);
+                                                                textView.setText("Skip Ad");
                                                             }
                                                         });
-                                                        textView.setText("Skip Ad");
                                                     }else{
-                                                        textView.setText("Skip Ad In "+(5-i));
+                                                        runOnUiThread(new Runnable() {
+                                                            @Override
+                                                            public void run() {
+                                                                textView.setText("Skip Ad In "+(5-temp));
+                                                            }
+                                                        });
                                                     }
                                                 }else{
-                                                    textView.setText("Ending In "+(duration-i));
+                                                    runOnUiThread(new Runnable() {
+                                                        @Override
+                                                        public void run() {
+                                                            textView.setText("Ending In "+(duration-temp));
+                                                        }
+                                                    });
+
                                                 }
 
                                                 elapsed= ((double) i/duration)*100;
@@ -203,10 +216,50 @@ public class Temp123Class extends AppCompatActivity {
         });
     }
 
+    public void recieveJSONLevel1(){
+        String url_request="http://video.activemobile.com/?k=0&pid=452&sid=190&zid=409&auth=amF3Y41&t=dmlkZW8=&m=Q1BN&source_id=d&video=https://file-examples-com.github.io/uploads/2017/04/file_example_MP4_480_1_5MG.mp4&width=320&height=240&type=api&VAST=1";
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url_request,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        //hiding the progressbar after completion
+
+
+                        try {
+                            Log.i("THISTAG", "onResponse: "+response);
+                            //starting json parsing
+
+                            JSONObject obj = new JSONObject(response);
+                            video_url2= obj.getString("video_url"); // for image banner
+                            tracking_events= obj.getString("tracking_links");
+                            on_click_url2= obj.getString("clickUrl");
+
+                            recieveJSON();
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+
+//                        Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+        //creating a request queue
+        RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
+
+        //adding the string request to request queue
+        requestQueue.add(stringRequest);
+    }
+
     //xml: http://ads.activemobile.com/vpaid/xml_parser.php?solo=1&data=MjAyMC0wOS0xNz0wNDoyNTozMTMwMTAwMDAtfC0wem9VaU93elBGMTBkNU04NHNzZTIwMjAtMDktMTc9MDQ6MjU6MzIyNzEzMTY4MTItfC1bUkFORE9NX0lEXSxkLDE5MCw0MDksdmlkZW8sNDA0Nzc0OCw4MCwxLDQ1Miw0NTIsNDUyXzQwOV9kLDEwMy4xMDQuMjEzLjI0NiwsTEcgIE5leHVzIDUsdGFibGV0LCwsQW5kcm9pZCxMRyAgTmV4dXMgNSwsTEcsLCwsLDIwMjAtMDktMTcsMDQ6Mjk6MzIsMDQsMSwxLDAsVU5LTk9XTi18LVlFUy0xLTEtMS0xLTEtMC0wLTAtMC0wLTAtMC0wLTAtfC1odHRwOi8vd3d3Lmdvb2dsZS5jb20tfC1odHRwOi8vYWRtaW4uYWN0aXZlbW9iaWxlLmNvbS92aWRlby80NTIvNDUyXzE1NzAwMjRfMzY5NTUyMDE1Ni18LTMyMC18LTI0MC18LVZJREV
     public void recieveJSON(){
-        String url_request="http://ads.activemobile.com/vpaid/video_tracking_events.php?solo=1&data=MjAyMC0wOS0yMT0wMzo0NTo0MTM2NDAwMDAtfC1CVlM3bUhUeWlZQ2hGdEJmOVllQjIwMjAtMDktMjE9MDM6NDU6NDExODg0MzQ1MjgtfC1bUkFORE9NX0lEXSxkLDE5MCw0MDksdmlkZW8sNDA0Nzc0OCw4MCwxLDQ1Miw0NTIsNDUyXzQwOV9kLDEwMy4xMDQuMjEzLjI0NiwsTEcgIE5leHVzIDUsdGFibGV0LCwsQW5kcm9pZCxMRyAgTmV4dXMgNSwsTEcsLCwsLDIwMjAtMDktMjEsMDM6NDg6NDEsMDMsMSwxLDAsVU5LTk9XTi18LVlFUy0xLTEtMS0xLTEtMC0wLTAtMC0wLTAtMC0wLTAtfC1odHRwOi8vd3d3Lmdvb2dsZS5jb20tfC1odHRwOi8vYWRtaW4uYWN0aXZlbW9iaWxlLmNvbS92aWRlby80NTIvNDUyXzE1NzAwMjRfMzY5NTUyMDE1Ni18LTMyMC18LTI0MC18LVZJREVP";
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url_request,
+        //String url_request="http://ads.activemobile.com/vpaid/video_tracking_events.php?solo=1&data=MjAyMC0wOS0yMT0wMzo0NTo0MTM2NDAwMDAtfC1CVlM3bUhUeWlZQ2hGdEJmOVllQjIwMjAtMDktMjE9MDM6NDU6NDExODg0MzQ1MjgtfC1bUkFORE9NX0lEXSxkLDE5MCw0MDksdmlkZW8sNDA0Nzc0OCw4MCwxLDQ1Miw0NTIsNDUyXzQwOV9kLDEwMy4xMDQuMjEzLjI0NiwsTEcgIE5leHVzIDUsdGFibGV0LCwsQW5kcm9pZCxMRyAgTmV4dXMgNSwsTEcsLCwsLDIwMjAtMDktMjEsMDM6NDg6NDEsMDMsMSwxLDAsVU5LTk9XTi18LVlFUy0xLTEtMS0xLTEtMC0wLTAtMC0wLTAtMC0wLTAtfC1odHRwOi8vd3d3Lmdvb2dsZS5jb20tfC1odHRwOi8vYWRtaW4uYWN0aXZlbW9iaWxlLmNvbS92aWRlby80NTIvNDUyXzE1NzAwMjRfMzY5NTUyMDE1Ni18LTMyMC18LTI0MC18LVZJREVP";
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, tracking_events,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
@@ -221,14 +274,14 @@ public class Temp123Class extends AppCompatActivity {
 
                             JSONObject resp= obj.getJSONObject("data");
                             is_skipable= resp.getString("skipable_event"); // for image banner
-                            //is_skipable="true";
+//                            is_skipable="true";
                             start_url= resp.getString("start_event");
                             first_quartile_url= resp.getString("first_quartile_event");
                             midpoint_url= resp.getString("mid_point_event");
                             third_quartile_url= resp.getString("third_quartile_event");
                             end_url= resp.getString("complete_event");
                             impression_url= resp.getString("impression_event");
-                            on_click_url= resp.getString("start_event");
+                            on_click_url1= resp.getString("start_event");
                             popUrl= resp.getString("click_event");
 
                             JSONArray files= resp.getJSONArray("files");
@@ -236,7 +289,7 @@ public class Temp123Class extends AppCompatActivity {
                             for(int i=0; i<files.length(); i++){
                                 temp= files.getJSONObject(i);
                                 if(temp.getString("bitrate").equalsIgnoreCase("1024") && temp.getString("type").contains("mp4")){
-                                    video_url= temp.getString("url");
+                                    video_url1= temp.getString("url");
                                     break;
                                 }
                             }
@@ -251,7 +304,7 @@ public class Temp123Class extends AppCompatActivity {
                     @Override
                     public void onErrorResponse(VolleyError error) {
 
-                        Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
+//                        Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
 
@@ -263,136 +316,18 @@ public class Temp123Class extends AppCompatActivity {
     }
 
 
-//    public void recieveXML(){
-//        String url_request="http://ads.activemobile.com/vpaid/xml_parser.php?solo=1&data=MjAyMC0wOS0xNz0wNDoyNTozMTMwMTAwMDAtfC0wem9VaU93elBGMTBkNU04NHNzZTIwMjAtMDktMTc9MDQ6MjU6MzIyNzEzMTY4MTItfC1bUkFORE9NX0lEXSxkLDE5MCw0MDksdmlkZW8sNDA0Nzc0OCw4MCwxLDQ1Miw0NTIsNDUyXzQwOV9kLDEwMy4xMDQuMjEzLjI0NiwsTEcgIE5leHVzIDUsdGFibGV0LCwsQW5kcm9pZCxMRyAgTmV4dXMgNSwsTEcsLCwsLDIwMjAtMDktMTcsMDQ6Mjk6MzIsMDQsMSwxLDAsVU5LTk9XTi18LVlFUy0xLTEtMS0xLTEtMC0wLTAtMC0wLTAtMC0wLTAtfC1odHRwOi8vd3d3Lmdvb2dsZS5jb20tfC1odHRwOi8vYWRtaW4uYWN0aXZlbW9iaWxlLmNvbS92aWRlby80NTIvNDUyXzE1NzAwMjRfMzY5NTUyMDE1Ni18LTMyMC18LTI0MC18LVZJREV";
-//        StringRequest stringRequest = new StringRequest(Request.Method.GET, url_request,
-//                new Response.Listener<String>() {
-//                    @Override
-//                    public void onResponse(String response) {
-//                        //hiding the progressbar after completion
-//
-//                        try {
-//                            Log.i("THISTAG", "onResponse: "+response);
-//                            //starting xml parsing
-//                            XmlPullParserFactory factory = XmlPullParserFactory
-//                                    .newInstance();
-//                            factory.setNamespaceAware(true);
-//                            XmlPullParser parser = factory.newPullParser();
-//
-//                            parser.setInput(new StringReader(response));
-//
-//                            int eventType = parser.getEventType();
-//                            String text="";
-//                            String tag= "";
-//                            while (eventType != XmlPullParser.END_DOCUMENT){
-//                                String tagname = parser.getName();
-//                                switch (eventType) {
-//                                    case XmlPullParser.START_TAG:
-//                                        if (tagname.equalsIgnoreCase("Duration")){
-//                                            tag="duration";
-//                                        }
-//                                        if (tagname.equalsIgnoreCase("Impression")){
-//                                            tag="impression";
-//                                        }
-//                                        if (tagname.equalsIgnoreCase("Tracking")) {
-//                                            // gett= tracking tag
-//                                            if(parser.getAttributeValue(null, "event").equalsIgnoreCase("start")){
-//                                                tag="tracking_start";
-//                                            }else if(parser.getAttributeValue(null, "event").equalsIgnoreCase("firstQuartile")){
-//                                                tag= "tracking_FQ";
-//                                            }else if(parser.getAttributeValue(null, "event").equalsIgnoreCase("midpoint")){
-//                                                tag= "tracking_mid";
-//                                            }else if(parser.getAttributeValue(null, "event").equalsIgnoreCase("thirdQuartile")){
-//                                                tag= "tracking_TQ";
-//                                            }else if(parser.getAttributeValue(null, "event").equalsIgnoreCase("complete")){
-//                                                tag= "tracking_complete";
-//                                            }
-//
-//                                        }else if(tagname.equalsIgnoreCase("ClickThrough")){
-//                                            tag="click_url";
-//                                        }else if(tagname.equalsIgnoreCase("ClickTracking")){
-//                                            tag="click_tracking_url";
-//                                        }else if(tagname.equalsIgnoreCase("MediaFile")){
-//                                            if(parser.getAttributeValue(null, "type").equalsIgnoreCase("video/mp4") && parser.getAttributeValue(null, "bitrate").equalsIgnoreCase("1024")){
-//                                                tag="video_url";
-//                                            }
-//                                        }
-//                                        break;
-//
-//                                    case XmlPullParser.TEXT:
-//                                        text = parser.getText();
-//                                        if(tag.equalsIgnoreCase("duration")){
-//                                            video_duration= parser.getText().toString();
-//                                            SimpleDateFormat dateFormat = new SimpleDateFormat("hh:mm:ss");
-//                                            Date startTime = dateFormat.parse("00:00:00");
-//                                            Date parseTime = dateFormat.parse(video_duration);
-//                                            long dist  = parseTime.getTime() - startTime.getTime();
-//
-//                                            duration = Math.round(TimeUnit.MILLISECONDS.toSeconds(dist));
-//                                            // change this to intger seconds
-//                                        }else if(tag.equalsIgnoreCase("impression")){
-//                                            impression_url= parser.getText();
-//                                        }else if(tag.equalsIgnoreCase("tracking_start")){
-//                                            start_url= parser.getText();
-//                                        }else if(tag.equalsIgnoreCase("tracking_FQ")){
-//                                            first_quartile_url= parser.getText();
-//                                        }else if(tag.equalsIgnoreCase("tracking_mid")){
-//                                            midpoint_url= parser.getText();
-//                                        }else if(tag.equalsIgnoreCase("tracking_TQ")){
-//                                            third_quartile_url= parser.getText();
-//                                        }else if(tag.equalsIgnoreCase("tracking_complete")){
-//                                            end_url= parser.getText();
-//                                        }else if(tag.equalsIgnoreCase("click_url")){
-//                                            clickUrl= parser.getText();
-//                                        }else if(tag.equalsIgnoreCase("click_tracking_url")){
-//                                            on_click_url= parser.getText();
-//                                        }else if(tag.equalsIgnoreCase("video_url")){
-//                                            video_url= parser.getText();
-//                                        }
-//                                        break;
-//
-//                                    case XmlPullParser.END_TAG:
-//                                        tag="";
-//                                    default:
-//                                        break;
-//
-//                                }
-//                                eventType = parser.next();
-//                            }
-//                            initializePlayer();
-//
-//                        } catch (Exception e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                },
-//                new Response.ErrorListener() {
-//                    @Override
-//                    public void onErrorResponse(VolleyError error) {
-//
-//                        Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
-//                    }
-//                });
-//
-//        //creating a request queue
-//        RequestQueue requestQueue = Volley.newRequestQueue(getApplicationContext());
-//
-//        //adding the string request to request queue
-//        requestQueue.add(stringRequest);
-//    }
-
     public void hitURL(String url){
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                        Toast.makeText(getApplicationContext(), response, Toast.LENGTH_SHORT).show();
+//                        Toast.makeText(getApplicationContext(), response, Toast.LENGTH_SHORT).show();
                     }
                 },
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
 
-                        Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
+//                        Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
         //creating a request queue
